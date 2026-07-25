@@ -19,6 +19,7 @@ async function main() {
 
   // ─── Create Users ────────────────────────────────────────────────
   const adminPassword = await bcrypt.hash("admin123!", 12);
+  const simpleAdminPassword = await bcrypt.hash("admin", 12);
   const memberPassword = await bcrypt.hash("member123!", 12);
 
   const admin = await prisma.user.create({
@@ -26,6 +27,26 @@ async function main() {
       email: "admin@starmanagement.com",
       passwordHash: adminPassword,
       name: "Sarah Admin",
+      role: "admin",
+    },
+  });
+
+  // admin/admin support
+  await prisma.user.create({
+    data: {
+      email: "admin",
+      passwordHash: simpleAdminPassword,
+      name: "Default Admin",
+      role: "admin",
+    },
+  });
+
+  // admin@admin.com/admin support
+  await prisma.user.create({
+    data: {
+      email: "admin@admin.com",
+      passwordHash: simpleAdminPassword,
+      name: "Default Admin (Email)",
       role: "admin",
     },
   });
@@ -49,9 +70,11 @@ async function main() {
   });
 
   console.log("✅ Users created:");
-  console.log(`   Admin:   admin@starmanagement.com / admin123!`);
-  console.log(`   Member1: alice@starmanagement.com / member123!`);
-  console.log(`   Member2: bob@starmanagement.com   / member123!\n`);
+  console.log(`   Admin:           admin@starmanagement.com / admin123!`);
+  console.log(`   Admin (Simple):  admin / admin`);
+  console.log(`   Admin (Email):   admin@admin.com / admin`);
+  console.log(`   Member1:         alice@starmanagement.com / member123!`);
+  console.log(`   Member2:         bob@starmanagement.com   / member123!\n`);
 
   // ─── Create Leads with varying statuses ──────────────────────────
   const leadsData = [

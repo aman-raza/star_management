@@ -65,11 +65,11 @@ function LoginForm() {
 
           <div>
             <label htmlFor="login-email" className="block text-sm font-medium text-gray-700 mb-1">
-              Email
+              Email / Username
             </label>
             <input
               id="login-email"
-              type="email"
+              type="text"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}

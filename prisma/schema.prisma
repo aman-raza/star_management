@@ -1,0 +1,93 @@
+// Lead Management Platform — Prisma Schema
+// PostgreSQL with Prisma ORM
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  admin
+  member
+}
+
+enum LeadStatus {
+  new
+  contacted
+  qualified
+  proposal
+  won
+  lost
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  role         Role     @default(member)
+  name         String
+  createdAt    DateTime @default(now())
+
+  assignedLeads Lead[]        @relation("AssignedLeads")
+  notes         Note[]
+  activities    ActivityLog[]
+
+  @@map("users")
+}
+
+model Lead {
+  id           String     @id @default(cuid())
+  name         String
+  email        String
+  company      String
+  message      String
+  source       String
+  status       LeadStatus @default(new)
+  assignedToId String?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  assignedTo User?         @relation("AssignedLeads", fields: [assignedToId], references: [id])
+  notes      Note[]
+  activities ActivityLog[]
+
+  @@index([status])
+  @@index([assignedToId])
+  @@index([createdAt])
+  @@map("leads")
+}
+
+model Note {
+  id        String   @id @default(cuid())
+  leadId    String
+  authorId  String
+  content   String
+  createdAt DateTime @default(now())
+
+  lead   Lead @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  author User @relation(fields: [authorId], references: [id])
+
+  @@index([leadId])
+  @@map("notes")
+}
+
+model ActivityLog {
+  id            String   @id @default(cuid())
+  leadId        String
+  actorId       String?
+  action        String // status_change, assignment_change, note_added, lead_created
+  previousValue String?
+  newValue      String?
+  createdAt     DateTime @default(now())
+
+  lead  Lead  @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  actor User? @relation(fields: [actorId], references: [id])
+
+  @@index([leadId])
+  @@index([createdAt])
+  @@map("activity_logs")
+}
